@@ -1,1 +1,1 @@
-web: gunicorn shoppingwebsite.wsgi
+web: gunicorn TerminalTrolly.wsgi
