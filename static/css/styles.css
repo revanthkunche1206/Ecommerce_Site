@@ -166,7 +166,6 @@ input[type="text"] {
   margin-top: 5px;
 }
 
-/* ===== Responsive Layout ===== */
 @media (max-width: 1024px) {
   .container-main {
     flex-direction: column;
