@@ -1,4 +1,4 @@
-fetch("https://fakestoreapi.com/products")
+fetch("https://dummyjson.com/products")
   .then((res) => res.json())
   .then((json) => {
     const productslist = json;
