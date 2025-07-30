@@ -1,7 +1,7 @@
 fetch("https://dummyjson.com/products")
   .then((res) => res.json())
   .then((json) => {
-    const productslist = json;
+    const productslist = json.products;
     displayProducts(productslist);
 
     const terminalOutput = document.querySelector('.terminal-output');
@@ -35,19 +35,20 @@ fetch("https://dummyjson.com/products")
       } else {
         terminalOutput.textContent += `Invalid command: ${command}\n`;
       }
-      
 
       terminalInput.value = ''; 
     }
 
     function viewCommand() {
-      terminalOutput.innerHTML += "Available Commands:\n1) help,\n2) list,\n3) details 'product_id',\n4) add 'product_id',\n5) remove 'product id',\n6) cart,\n7) buy,\n8) clear,\n9) search 'product_name',\n10) sort 'price/name'\n";
+      terminalOutput.innerHTML += 
+        "Available Commands:\n" +
+        "1) help,\n2) list,\n3) details 'product_id',\n4) add 'product_id',\n" +
+        "5) remove 'product_id',\n6) cart,\n7) buy,\n8) clear,\n" +
+        "9) search 'product_name',\n10) sort 'price/name'\n";
     }
 
     function listProducts() {
-      const products = productslist;
-      for (let i = 0; i < products.length; i++) {
-        let product = products[i];
+      for (let product of productslist) {
         terminalOutput.innerHTML += `ID: ${product.id}, Name: ${product.title}, Price: $${product.price}\n`;
       }
     }
@@ -55,27 +56,39 @@ fetch("https://dummyjson.com/products")
     function viewDetails(productId) {
       const product = productslist.find(p => p.id == productId);
       if (product) {
-        terminalOutput.innerHTML +=`ID: ${product.id},\n Name: ${product.title},\n Price: $${product.price},\n Description: ${product.description}\n`;
+        terminalOutput.innerHTML += 
+          `ID: ${product.id},\n` +
+          `Name: ${product.title},\n` +
+          `Price: $${product.price},\n` +
+          `Description: ${product.description},\n` +
+          `Rating: ${product.rating},\n` +
+          `Category: ${product.category},\n` +
+          `Brand: ${product.brand},\n` +
+          `Stock: ${product.stock},\n` +
+          `Warranty: ${product.warrantyInformation},\n` +
+          `Shipping: ${product.shippingInformation},\n` +
+          `Return Policy: ${product.returnPolicy},\n` +
+          `Minimum Order: ${product.minimumOrderQuantity}\n`;
+
+        if (product.reviews && product.reviews.length > 0) {
+          terminalOutput.innerHTML += `\nReviews:\n`;
+          product.reviews.forEach(r => {
+            terminalOutput.innerHTML += `- ${r.reviewerName} (${r.rating}/5): ${r.comment}\n`;
+          });
+        }
       } else {
         terminalOutput.innerHTML += `Product with ID ${productId} not found.\n`;
       }
     }
 
     function addToCart(productId) {
-      let product = null;
-      for (let i = 0; i < productslist.length; i++) {
-        if (productslist[i].id == productId) {
-          product = productslist[i];
-          break; 
-        }
-      }
-
+      const product = productslist.find(p => p.id == productId);
       if (product) {
-        cart.push(product); 
-        terminalOutput.innerHTML +=` Added product with ID ${product.id} to the cart.\n`;
-        updateCartPrice(); 
+        cart.push(product);
+        terminalOutput.innerHTML += `Added product with ID ${product.id} to the cart.\n`;
+        updateCartPrice();
       } else {
-        terminalOutput.innerHTML +=`Product with ID ${productId} not found.\n` ;
+        terminalOutput.innerHTML += `Product with ID ${productId} not found.\n`;
       }
     }
 
@@ -84,7 +97,6 @@ fetch("https://dummyjson.com/products")
       terminalOutput.innerHTML += `Removed product with ID ${productId} from the cart.\n`;
       updateCartPrice();
     }
-  
 
     function viewCart() {
       if (cart.length === 0) {
@@ -92,7 +104,7 @@ fetch("https://dummyjson.com/products")
       } else {
         terminalOutput.innerHTML += "Items in your cart:\n";
         cart.forEach(product => {
-          terminalOutput.innerHTML += `ID: ${product.id}, Name: ${product.title}, Price: $${product.price}, Description: ${product.description}\n`;
+          terminalOutput.innerHTML += `ID: ${product.id}, Name: ${product.title}, Price: $${product.price}\n`;
         });
       }
     }
@@ -101,27 +113,22 @@ fetch("https://dummyjson.com/products")
       if (cart.length === 0) {
         terminalOutput.innerHTML += "Your cart is empty. Add items to cart before proceeding to buy.\n";
       } else {
-       
         sessionStorage.setItem('cart', JSON.stringify(cart));
         window.open('buy.html', '_blank');
       }
     }
-    
 
     function clearScreen() {
       terminalOutput.innerHTML = '';
     }
 
     function searchProduct(productName) {
-      let matchingProduct;
-      for (const p of productslist) {
-        if (p.title.toLowerCase().includes(productName.trim().toLowerCase())) {
-        matchingProduct = p;
-        break;
-        }
-      }
-      if (matchingProduct) {
-        terminalOutput.innerHTML +=` Found: ID: ${matchingProduct.id}, Name: ${matchingProduct.title}, Price: $${matchingProduct.price}\n`;
+      const product = productslist.find(p => 
+        p.title.toLowerCase().includes(productName.toLowerCase())
+      );
+      if (product) {
+        terminalOutput.innerHTML += 
+          `Found: ID: ${product.id}, Name: ${product.title}, Price: $${product.price}\n`;
       } else {
         terminalOutput.innerHTML += `Product named '${productName}' not found.\n`;
       }
@@ -134,27 +141,24 @@ fetch("https://dummyjson.com/products")
         productslist.sort((a, b) => a.title.localeCompare(b.title));
       }
 
-      
       const productsContainer = document.getElementById("products");
-      productsContainer.innerHTML = ''; 
-      displayProducts(productslist); 
+      productsContainer.innerHTML = '';
+      displayProducts(productslist);
 
-     
+      terminalOutput.innerHTML += `\nProducts sorted by ${criteria}:\n`;
       productslist.forEach(product => {
         terminalOutput.innerHTML += `ID: ${product.id}, Name: ${product.title}, Price: $${product.price}\n`;
       });
     }
 
     function updateCartPrice() {
-      let totalPrice = 0;
-      for (let i = 0; i < cart.length; i++) {
-        totalPrice += cart[i].price;
-      }
+      const totalPrice = cart.reduce((sum, p) => sum + p.price, 0);
       const cartPriceElement = document.getElementById('cart-price');
-      cartPriceElement.innerHTML = `$${totalPrice.toFixed(2)}`;
+      if (cartPriceElement) {
+        cartPriceElement.innerHTML = `$${totalPrice.toFixed(2)}`;
+      }
     }
 
-    
     terminalInput.addEventListener('keydown', function(event) {
       if (event.key === 'Enter') {
         handleInput();
@@ -164,56 +168,51 @@ fetch("https://dummyjson.com/products")
 
 function displayProducts(products) {
   const productsContainer = document.getElementById("products");
+  productsContainer.innerHTML = '';
 
-  for (let i = 0; i < products.length; i++) {
-    const product = products[i];
-
+  for (let product of products) {
     const productElement = document.createElement("div");
     productElement.className = "product";
 
     const image = document.createElement("img");
-    image.src = product.image; 
+    image.src = product.images?.[0] || product.thumbnail || "";
     image.alt = product.title;
     productElement.appendChild(image);
 
-    const titleinfo=document.createElement("div");
-    titleinfo.className="info";
+    const titleInfo = document.createElement("div");
+    titleInfo.className = "info";
 
-    const productname=document.createElement("p");
-    productname.className="name";
-    productname.innerHTML=product.category;
+    const productName = document.createElement("p");
+    productName.className = "name";
+    productName.innerHTML = product.title;
+    titleInfo.appendChild(productName);
 
-    titleinfo.appendChild(productname);
-
-    productElement.appendChild(titleinfo);
+    productElement.appendChild(titleInfo);
 
     const actualPriceValue = product.price + 100;
 
     const heart = document.createElement("i");
-    heart.className="far fa-heart";
-    heart.style.float="left";
+    heart.className = "far fa-heart";
+    heart.style.float = "left";
     productElement.appendChild(heart);
-  
+
     const actualPrice = document.createElement("p");
-    actualPrice.className="actualprice";
-    actualPrice.innerText =` $${actualPriceValue}`;
+    actualPrice.className = "actualprice";
+    actualPrice.innerText = `$${actualPriceValue}`;
     actualPrice.style.color = "red";
     actualPrice.style.textDecoration = "line-through";
     productElement.appendChild(actualPrice);
-  
+
     const price = document.createElement("p");
-    price.className="price";
-    price.innerText =` $${product.price}`;
+    price.className = "price";
+    price.innerText = `$${product.price}`;
     productElement.appendChild(price);
 
     const cartIcon = document.createElement("i");
-    cartIcon.className="fas fa-shopping-cart";
-    cartIcon.style.float="right";
+    cartIcon.className = "fas fa-shopping-cart";
+    cartIcon.style.float = "right";
     productElement.appendChild(cartIcon);
 
     productsContainer.appendChild(productElement);
   }
 }
-
-
-
